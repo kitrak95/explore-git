@@ -6,6 +6,23 @@
 #include "shunting-yard.h"
 #include "stack.h"
 
+#ifdef _STUPID_OS
+char *__strndup (const char *s, size_t n){
+  char *result;
+  size_t len = strlen (s);
+
+  if (n < len)
+    len = n;
+
+  result = (char *) malloc (len + 1);
+  if (!result)
+    return 0;
+
+  result[len] = '\0';
+  return (char *) memcpy (result, s, len);
+}
+#endif
+
 typedef enum {
     TOKEN_NONE,
     TOKEN_UNKNOWN,
@@ -132,7 +149,7 @@ Token *tokenize(const char *expression) {
             token.type = TOKEN_CLOSE_PARENTHESIS;
         else if (strchr("!^*/%+-", *c)) {
             token.type = TOKEN_OPERATOR;
-            token.value = strndup(c, 1);
+            token.value = __strndup(c, 1);
         } else if (sscanf(c, "%m[0-9.]", &token.value))
             token.type = TOKEN_NUMBER;
         else if (sscanf(c, "%m[A-Za-z]", &token.value))
@@ -217,6 +234,7 @@ Status parse(const Token *tokens, Stack **operands, Stack **operators,
 
             default:
                 status = ERROR_UNRECOGNIZED;
+                printf("%d %s", token->type, token->value);
         }
         if (status != OK)
             return status;
@@ -359,7 +377,7 @@ Status apply_function(const char *function, Stack **operands) {
     if (strcasecmp(function, "abs") == 0)
         x = fabs(x);
     else if (strcasecmp(function, "sqrt") == 0)
-        x = sqrt(x);
+        x = ml_sqroot(x);
     else if (strcasecmp(function, "ln") == 0)
         x = log(x);
     else if (strcasecmp(function, "lb") == 0)
@@ -373,6 +391,10 @@ Status apply_function(const char *function, Stack **operands) {
         x = sin(x);
     else if (strcasecmp(function, "tan") == 0)
         x = tan(x);
+    else if (strcasecmp(function, "isPrime") == 0)
+        x = ml_isPrime(x);
+    else if (strcasecmp(function, "nextPrime") == 0)
+        x = ml_nextPrime(x);
     else
         return ERROR_UNDEFINED_FUNCTION;
     push_double(x, operands);

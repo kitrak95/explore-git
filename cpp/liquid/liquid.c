@@ -8,7 +8,9 @@ int main(int agrc, char *argv[]){
 
     scanf(" %s", input);
     Status response = shunting_yard(input, &result);
-    
-	printf(": %d\n>> %f\n", response, result);
+    if (response == OK)
+        printf(": %d\n>> %f\n", response, result);
+    else
+        printf("Error %d\n", response);
 	return 0;
 }
